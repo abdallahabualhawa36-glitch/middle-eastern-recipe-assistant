@@ -11,10 +11,8 @@ import os
 from langdetect import detect as detect_language
 from flask import send_file
 
-# ✅ تعريف حالة الطهي
 cooking_kb_state = {'know_base': CookingKnowledgeBase()}
 
-# ✅ تعريف extract_prompt قبل استخدامه
 extract_prompt = ChatPromptTemplate.from_template("""
 Extract cooking knowledge from the following conversation:
 User: {input}
@@ -29,7 +27,6 @@ internal_cooking_chain = RunnableAssign({
     'know_base': RExtract(CookingKnowledgeBase, instruct_llm, extract_prompt)
 })
 
-# ... باقي الكود كما هو ...
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -160,7 +157,6 @@ def chat():
             "user_lang": user_lang  # Add detected language
         }
 
-        # استدعاء وثائق السياق
         docs = docstore.as_retriever(search_kwargs={"k": 20}).invoke(message)
         chain_input["context"] = long_reorder.transform_documents(diversify_documents(docs))
 

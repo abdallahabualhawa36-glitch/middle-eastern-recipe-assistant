@@ -103,7 +103,7 @@ def get_recipe_context(conversation_id):
     }
 def load_local_pdfs(pdf_paths):
     """Load and extract text from local PDF files using PyMuPDF"""
-    from langchain_core.documents import Document  # ✅ بدلاً من langchain.docstore.document
+    from langchain_core.documents import Document 
 
 def load_local_pdfs(pdf_paths):
     """Load and extract text from local PDF files using PyMuPDF"""

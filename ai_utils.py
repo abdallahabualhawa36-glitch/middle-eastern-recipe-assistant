@@ -2,7 +2,7 @@ import os
 from langchain_community.vectorstores import FAISS
 from langchain_nvidia_ai_endpoints import ChatNVIDIA, NVIDIAEmbeddings
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser, PydanticOutputParser  # ✅ تم التعديل
+from langchain_core.output_parsers import StrOutputParser, PydanticOutputParser  
 from langchain_community.document_transformers import LongContextReorder
 from langchain_core.runnables import RunnableLambda
 from langchain_core.runnables.passthrough import RunnableAssign
@@ -13,7 +13,6 @@ from pydantic import BaseModel, Field
 from langchain_core.messages import AIMessage
 from utils import load_local_pdfs, get_conversation_history, get_recipe_context
 
-# Initialize AI components
 os.environ["NVIDIA_API_KEY"] = "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"
 
 embedder = NVIDIAEmbeddings(model="nvidia/nv-embed-v1")
@@ -21,7 +20,7 @@ embedder = NVIDIAEmbeddings(model="nvidia/nv-embed-v1")
 instruct_llm = ChatNVIDIA(
     model="deepseek-ai/deepseek-v4-flash",
     temperature=0.7,
-    timeout=120  # زيادة المهلة إلى 120 ثانية لمنع انتهاء الوقت
+    timeout=120  
 )
 
 long_reorder = LongContextReorder()
@@ -163,8 +162,6 @@ pdf_paths = [
 docstore = initialize_docstore(pdf_paths)
 convstore = initialize_convstore()
 
-# Chat chain setup
-# استبدال chat_prompt الحالي بهذا
 chat_prompt = ChatPromptTemplate.from_messages([
     ("system", """
         You are a helpful Middle Eastern chef assistant guiding users through recipes step-by-step.
