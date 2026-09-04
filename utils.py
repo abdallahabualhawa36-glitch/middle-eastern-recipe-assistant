@@ -1,6 +1,4 @@
-def get_conversation_history(conversation_id, limit=5):
-    from models import Message
-
+def get_conversation_history(conversation_id, Message, limit=5):
     messages = (
         Message.query
         .filter_by(conversation_id=conversation_id)

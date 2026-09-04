@@ -143,9 +143,14 @@ def filter_products_for_query(
             "iphone",
             "آيفون",
             "ايفون",
-            "آبل فون"
+            "آبل فون",
+            "هاتف",
+            "تلفون",
+            "موبايل",
+            "جوال",
+            "phone",
+            "smartphone"
         ],
-
         "mac": [
             "mac",
             "ماك",
@@ -157,13 +162,11 @@ def filter_products_for_query(
             "mac mini",
             "mac studio"
         ],
-
         "ipad": [
             "ipad",
             "آيباد",
             "ايباد"
         ],
-
         "watch": [
             "apple watch",
             "watch",
@@ -171,14 +174,12 @@ def filter_products_for_query(
             "ابل واتش",
             "آبل واتش"
         ],
-
         "airpods": [
             "airpods",
             "air pods",
             "ايربودز",
             "إيربودز"
         ],
-
         "accessory": [
             "charger",
             "شاحن",
@@ -209,150 +210,116 @@ def filter_products_for_query(
     min_price = None
 
     max_price_patterns = [
-        r'(?:under|below|less than|up to|max|maximum)\s*\$?\s*(\d+(?:\.\d+)?)',
-        r'(?:تحت|اقل من|أقل من|حدي|ميزانيتي|بحدود|حد أقصى)\s*\$?\s*(\d+(?:\.\d+)?)'
+        r"(?:تحت|أقل من|اقل من|بحد أقصى|حد أقصى|ميزانية|budget)\s*(?:من)?\s*(\d+(?:\.\d+)?)",
+        r"(?:under|below|less than|max|maximum|budget)\s*\$?\s*(\d+(?:\.\d+)?)"
+    ]
+
+    min_price_patterns = [
+        r"(?:فوق|أكثر من|اكثر من|أعلى من|اعلى من)\s*(\d+(?:\.\d+)?)",
+        r"(?:above|over|more than|greater than|minimum)\s*\$?\s*(\d+(?:\.\d+)?)"
     ]
 
     for pattern in max_price_patterns:
-        match = re.search(
-            pattern,
-            query,
-            re.IGNORECASE
-        )
-
+        match = re.search(pattern, query)
         if match:
             max_price = float(match.group(1))
             break
 
-    min_price_patterns = [
-        r'(?:above|over|more than|starting from)\s*\$?\s*(\d+(?:\.\d+)?)',
-        r'(?:فوق|أكثر من|اكثر من|من)\s*\$?\s*(\d+(?:\.\d+)?)'
-    ]
-
     for pattern in min_price_patterns:
-        match = re.search(
-            pattern,
-            query,
-            re.IGNORECASE
-        )
-
+        match = re.search(pattern, query)
         if match:
             min_price = float(match.group(1))
             break
 
-    if (
-        not detected_category
-        and max_price is None
-        and min_price is None
-    ):
-        return products[:max_results]
-
-    matched_products = []
+    filtered = []
 
     for product in products:
-        name = str(
-            product.get("name", "")
-        ).lower()
-
-        brand = str(
-            product.get("brand", "")
-        ).lower()
-
-        description = str(
-            product.get("description", "")
-        ).lower()
-
-        tags = product.get("tags", [])
-
-        if isinstance(tags, list):
-            tags_text = " ".join(
-                str(tag).lower()
-                for tag in tags
-            )
-        elif tags:
-            tags_text = str(tags).lower()
-        else:
-            tags_text = ""
+        name = str(product.get("name", "")).lower()
+        brand = str(product.get("brand", "")).lower()
+        description = str(product.get("description", "")).lower()
+        tags = str(product.get("tags", "")).lower()
 
         searchable_text = " ".join([
             name,
             brand,
             description,
-            tags_text
+            tags
         ])
 
-        category_match = True
+        if detected_category == "iphone":
+            category_match = (
+                "iphone" in searchable_text
+                or "آيفون" in searchable_text
+                or "ايفون" in searchable_text
+            )
 
-        if detected_category:
-            if detected_category == "iphone":
-                category_match = (
-                    "iphone" in searchable_text
-                    or "آيفون" in searchable_text
-                    or "ايفون" in searchable_text
-                )
+        elif detected_category == "mac":
+            category_match = (
+                "mac" in searchable_text
+                or "macbook" in searchable_text
+                or "imac" in searchable_text
+                or "ماك" in searchable_text
+            )
 
-            elif detected_category == "mac":
-                category_match = (
-                    "mac" in searchable_text
-                    or "ماك" in searchable_text
-                )
+        elif detected_category == "ipad":
+            category_match = (
+                "ipad" in searchable_text
+                or "آيباد" in searchable_text
+                or "ايباد" in searchable_text
+            )
 
-            elif detected_category == "ipad":
-                category_match = (
-                    "ipad" in searchable_text
-                    or "آيباد" in searchable_text
-                    or "ايباد" in searchable_text
-                )
+        elif detected_category == "watch":
+            category_match = (
+                "watch" in searchable_text
+                or "ساعة" in searchable_text
+                or "واتش" in searchable_text
+            )
 
-            elif detected_category == "watch":
-                category_match = (
-                    "watch" in searchable_text
-                    or "ساعة" in searchable_text
-                    or "واتش" in searchable_text
-                )
+        elif detected_category == "airpods":
+            category_match = (
+                "airpods" in searchable_text
+                or "air pods" in searchable_text
+                or "ايربودز" in searchable_text
+                or "إيربودز" in searchable_text
+            )
 
-            elif detected_category == "airpods":
-                category_match = (
-                    "airpods" in searchable_text
-                    or "air pods" in searchable_text
-                    or "ايربودز" in searchable_text
-                    or "إيربودز" in searchable_text
-                )
+        elif detected_category == "accessory":
+            accessory_words = category_keywords["accessory"]
+            category_match = any(
+                word in searchable_text
+                for word in accessory_words
+            )
 
-            elif detected_category == "accessory":
-                category_match = any(
-                    keyword in searchable_text
-                    for keyword in category_keywords["accessory"]
-                )
+        else:
+            category_match = True
 
         if not category_match:
             continue
 
+        price = product.get("price")
+
         try:
-            price = float(
-                product.get("price", 0)
-            )
+            price = float(price)
         except (TypeError, ValueError):
-            price = 0
+            price = None
 
-        if (
-            max_price is not None
-            and price > max_price
-        ):
-            continue
+        if max_price is not None:
+            if price is None or price > max_price:
+                continue
 
-        if (
-            min_price is not None
-            and price < min_price
-        ):
-            continue
+        if min_price is not None:
+            if price is None or price < min_price:
+                continue
 
-        matched_products.append(product)
+        filtered.append(product)
 
-    if not matched_products:
+        if len(filtered) >= max_results:
+            break
+
+    if detected_category is None and max_price is None and min_price is None:
         return products[:max_results]
 
-    return matched_products[:max_results]
+    return filtered
 
 
 @app.route('/api/health', methods=['GET'])
@@ -376,6 +343,10 @@ def chat():
         'product_context',
         []
     )
+    print("\n📦 PRODUCTS RECEIVED FROM LARAVEL:", len(product_context))
+
+    if product_context:
+     print("🛍️ FIRST PRODUCTS:", [p.get("name") for p in product_context[:5]])
 
     shopping_state = data.get(
         'shopping_state',
@@ -436,6 +407,7 @@ def chat():
 
     history = get_conversation_history(
         conversation_id,
+        Message,
         5
     )
 
